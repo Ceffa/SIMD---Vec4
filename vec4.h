@@ -14,13 +14,13 @@ public:
 	V4& operator = (const V4& O) noexcept {R = O.R;	return *this;}
 	~V4() noexcept {}
 
-	//MEMBERS ACCESS
-	F x() const {return GETX(R);}
-	F y() const {return GETX(PERM(R,R,0x01));}
-	F z() const {return GETX(PERM(R,R,0x02));}
-	F w() const {return GETX(PERM(R,R,0x03));}
+	//MEMBERS ACCESS (faster without intrinsics)
+	F x() const {return XYZW[0];}
+	F y() const {return XYZW[1];}
+	F z() const {return XYZW[2];}
+	F w() const {return XYZW[3];}
 
-	//MEMBERS SET
+	//MEMBERS SET (faster with intrinsics)
 	void x(F V) { R = INSERT(R,SETFIRST(V), 0x00);}
 	void y(F V) { R = INSERT(R,SETFIRST(V), 0x10);}
 	void z(F V) { R = INSERT(R,SETFIRST(V), 0x20);}
@@ -63,7 +63,10 @@ public:
 	}
 
 private:
-	M128 R;
+	union{
+		M128 R;
+		F XYZW[4];
+	};
 	constexpr V4(M128 _R) noexcept : R(_R){}
 
 	//Alias of function names, to make code cleaner
@@ -80,6 +83,8 @@ private:
 	static constexpr auto SQRT = _mm_sqrt_ss;
 	static constexpr auto RSQRT = _mm_rsqrt_ss;
 	static constexpr auto XOR = _mm_xor_ps;
+	static constexpr auto AND = _mm_and_ps;
+	static constexpr auto OR = _mm_or_ps;
 	static constexpr auto ZERO = _mm_setzero_ps;
 	static constexpr auto INSERT = _mm_insert_ps;
 };
